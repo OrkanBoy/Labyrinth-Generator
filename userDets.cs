@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -180,6 +180,13 @@ namespace LearningCSharpPart1
                 return true;
             }
             return false;
+        }
+        public void quickSingleDoorOpen(string door)
+        {
+            if (door == "N") { north = true; }
+            if (door == "S") { south = true; }
+            if (door == "W") { west = true; }
+            if (door == "E") { east = true; }
         }
     }
     
