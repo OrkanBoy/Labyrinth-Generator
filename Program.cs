@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace LearningCSharpPart1
@@ -7,10 +7,11 @@ namespace LearningCSharpPart1
     {
         static void Main(string[] args)
         {
-
-            //labyrinthFiniteVersionGeneratorGame(10, 10,"  ", "{}", "XX");
+            
+            //labyrinthFiniteVersionGeneratorGame(6, 6,"  ", "{}", "XX", 2, 3, 0, 5);
             labyrinthInfiniteVersionGeneratorGame(4, 4,1, 1, "  ", "{}", "XX");
             //============================================================================================ == ===== = == ============== = ==================================== =================================== == == ========= ============ ================== = ==========
+
 
             static void labyrinthInfiniteVersionGeneratorGame(byte generatingAreaXSide, byte generatingAreaYSide, byte preparedGenerationXSide, byte preparedGenerationYSide, string fillerOfEmptyDungeonSpace, string fillerOfWallDungeonArea, string playerCurrentPositionFiller)
             {
@@ -246,7 +247,7 @@ namespace LearningCSharpPart1
                     generatingMapForLabyrinth(labyrinth, fillerOfEmptyDungeonSpace, fillerOfWallDungeonArea, playerCurrentPositionFiller);
 
                     if (movementType == "P"){
-                        gameEndedCheck = gameControlsForMazeGame(labyrinth, totalXSize, totalYsize, false, 0, 0);
+                        gameEndedCheck = gameControlsForMazeGame(labyrinth, false, 0, 0);
                     }
                     else
                     {
@@ -277,7 +278,7 @@ namespace LearningCSharpPart1
                         if(coordinateXDes>-1 && coordinateYDes > -1)
                         {
                             findBFSFindShortestPath(labyrinth, coordOfOurPlayerPos[1], coordOfOurPlayerPos[0], coordinateXDes, coordinateYDes, fillerOfEmptyDungeonSpace, fillerOfWallDungeonArea, playerCurrentPositionFiller);
-                            labyrinth[coordOfOurPlayerPos[0]][coordOfOurPlayerPos[1]].playerPresenceCheck = false; ;
+                            
                         }
                         else
                         {
@@ -335,8 +336,10 @@ namespace LearningCSharpPart1
 
 
 
-            static byte gameControlsForMazeGame(List<List<Room>> labyrinth, short lengthInLabyrinthX, short lengthInLabyrinthY, bool playerChunkLoadingDetection, byte generatingAreaXSide, byte generatingAreaYSide)
+            static byte gameControlsForMazeGame(List<List<Room>> labyrinth, bool isThereEnd, short supposedXStart, short supposedYStart)
             {
+                short lengthInLabyrinthX = (short)labyrinth[0].Count;
+                short lengthInLabyrinthY = (short)labyrinth.Count;
                 string playerCurrentMoveDecision = "X";
                 while (playerCurrentMoveDecision != "N" && playerCurrentMoveDecision != "E" && playerCurrentMoveDecision != "S" && playerCurrentMoveDecision != "W" && playerCurrentMoveDecision != "END")
                 {
@@ -347,65 +350,79 @@ namespace LearningCSharpPart1
                 
                 if (playerCurrentMoveDecision == "END")
                 {
-                    return 10;
+                    //return 5 means you have exited the labyrinth by the beginning or ended the game on purpose by enetering "END", thus u lost(depending on context)
+                    return 5;
                 }
 
-                for (byte checkingTheRowsForPlayerPresence = 0; checkingTheRowsForPlayerPresence < lengthInLabyrinthY; checkingTheRowsForPlayerPresence++)
-                {
-                    for (byte checkingTheCellForPlayerPresence = 0; checkingTheCellForPlayerPresence < lengthInLabyrinthX; checkingTheCellForPlayerPresence++)
-                    {
-                        if (labyrinth[checkingTheRowsForPlayerPresence][checkingTheCellForPlayerPresence].playerPresenceCheck == true)
-                        {
-                            try
-                            {
-                                if (playerCurrentMoveDecision == "E" && checkingTheCellForPlayerPresence <= lengthInLabyrinthX - 1)
-                                {
-                                    if (labyrinth[checkingTheRowsForPlayerPresence][checkingTheCellForPlayerPresence].east == true)
-                                    {
-                                        labyrinth[checkingTheRowsForPlayerPresence][checkingTheCellForPlayerPresence].playerPresenceCheck = false;
-                                        labyrinth[checkingTheRowsForPlayerPresence][checkingTheCellForPlayerPresence + 1].playerPresenceCheck = true;
-                                        //this is to prevent from going alll the way east
-                                        playerCurrentMoveDecision = "X";
-                                    }
-                                }
-                                else if (playerCurrentMoveDecision == "S" && checkingTheRowsForPlayerPresence <= lengthInLabyrinthY - 1)
-                                {
-                                    
-                                    if (labyrinth[checkingTheRowsForPlayerPresence][checkingTheCellForPlayerPresence].south == true)
-                                    {
-                                        labyrinth[checkingTheRowsForPlayerPresence][checkingTheCellForPlayerPresence].playerPresenceCheck = false;
-                                        labyrinth[checkingTheRowsForPlayerPresence + 1][checkingTheCellForPlayerPresence].playerPresenceCheck = true;
-                                        //this is to prevent it from goin g all the way south so i resseted the decison marker to X
-                                        playerCurrentMoveDecision = "X";
-                                    }
-                                }
-                                else if (playerCurrentMoveDecision == "W" && checkingTheCellForPlayerPresence > 0)
-                                {
-                                    if (labyrinth[checkingTheRowsForPlayerPresence][checkingTheCellForPlayerPresence].west == true)
-                                    {
 
-                                        labyrinth[checkingTheRowsForPlayerPresence][checkingTheCellForPlayerPresence].playerPresenceCheck = false;
-                                        labyrinth[checkingTheRowsForPlayerPresence][checkingTheCellForPlayerPresence - 1].playerPresenceCheck = true;
-                                        playerCurrentMoveDecision = "X";
-                                    }
-                                }
-                                else if (playerCurrentMoveDecision == "N" && checkingTheRowsForPlayerPresence > 0)
-                                {
-                                    if (labyrinth[checkingTheRowsForPlayerPresence][checkingTheCellForPlayerPresence].north == true)
-                                    {
-                                        labyrinth[checkingTheRowsForPlayerPresence][checkingTheCellForPlayerPresence].playerPresenceCheck = false;
-                                        labyrinth[checkingTheRowsForPlayerPresence - 1][checkingTheCellForPlayerPresence].playerPresenceCheck = true;
-                                    }
-                                }
-                            }
-                            catch (ArgumentOutOfRangeException)
-                            {
-                                Console.WriteLine("You finished the maze game");
-                                return 1;
-                            }
+                short[] coordsOfOurPlayerMarker = coordinatesOfCurPosMarker(labyrinth);
+
+                //position X of player
+                short xCoord = coordsOfOurPlayerMarker[1];
+                //position y of player
+                short yCoord = coordsOfOurPlayerMarker[0];
+
+
+                try
+                {
+                    if (playerCurrentMoveDecision == "E" && xCoord <= lengthInLabyrinthX - 1)
+                    {
+                        if (labyrinth[yCoord][xCoord].east == true)
+                        {
+                            labyrinth[yCoord][xCoord].playerPresenceCheck = false;
+                            labyrinth[yCoord][xCoord + 1].playerPresenceCheck = true;
+                            //this is to prevent from going alll the way east
+                            playerCurrentMoveDecision = "X";
+                        }
+                    }
+                    else if (playerCurrentMoveDecision == "S" && yCoord <= lengthInLabyrinthY - 1)
+                    {
+
+                        if (labyrinth[yCoord][xCoord].south == true)
+                        {
+                            labyrinth[yCoord][xCoord].playerPresenceCheck = false;
+                            labyrinth[yCoord + 1][xCoord].playerPresenceCheck = true;
+                            //this is to prevent it from goin g all the way south so i resseted the decison marker to X
+                            playerCurrentMoveDecision = "X";
+                        }
+                    }
+                    else if (playerCurrentMoveDecision == "W" && xCoord >= 0)
+                    {
+                        if (labyrinth[yCoord][xCoord].west == true)
+                        {
+
+                            labyrinth[yCoord][xCoord].playerPresenceCheck = false;
+                            labyrinth[yCoord][xCoord - 1].playerPresenceCheck = true;
+                            playerCurrentMoveDecision = "X";
+                        }
+                    }
+                    else if (playerCurrentMoveDecision == "N" && yCoord >= 0)
+                    {
+                        if (labyrinth[yCoord][xCoord].north == true)
+                        {
+                            labyrinth[yCoord][xCoord].playerPresenceCheck = false;
+                            labyrinth[yCoord - 1][xCoord].playerPresenceCheck = true;
                         }
                     }
                 }
+                catch (ArgumentOutOfRangeException)
+                {
+                    if(xCoord==supposedXStart && yCoord==supposedYStart)
+                    {
+                        //return 5 means you have exited the labyrinth by the beginning or ended the game on purpose by enetering "END", thus u lost(depending on context)
+                        return 5;
+                    }
+                    Console.WriteLine("You finished the maze game");
+                    //1 means you have exited through the actual end, thus you won(Dependes on context tho)
+                    return 1;
+                }
+
+
+
+
+
+
+                //0 means nothing special happened
                 return 0;
 
 
@@ -438,7 +455,7 @@ namespace LearningCSharpPart1
             }
             static void depthFirstSearchConstructionLabyrinthBased(List<List<Room>> ourMap, int positionXOfStartingPoint, int positionYOfStartingPoint,  string whatDirectioniCameFrom, bool limitedGeneration, byte minimumXAreaGenerated, byte minimumYAreaGenerated, short currentMarkerXPos, short currentMarkerYPos)
             {
-                Console.WriteLine(currentMarkerXPos + "    " + currentMarkerYPos+ " are the values of the marker");
+                //Console.WriteLine(currentMarkerXPos + "    " + currentMarkerYPos+ " are the values of the marker");
                 //Uncomment the next 3 line if you wanna see map getting generated at each stag
 
                 /*ourMap[positionYOfStartingPoint][positionXOfStartingPoint].playerPresenceCheck = true;
@@ -474,7 +491,7 @@ namespace LearningCSharpPart1
                 
                 if (temporaryAllowanceForGeneration ==false)
                 {
-                    Console.WriteLine("alloweed to generate");
+                    //Console.WriteLine("alloweed to generate");
                     ourMap[positionYOfStartingPoint][positionXOfStartingPoint].checkForDoorOpeningStability = true;
                     
                     if (whatDirectioniCameFrom == "N")//2 associated with: The selector came from their north door to my current south door
@@ -620,7 +637,7 @@ namespace LearningCSharpPart1
                 return (short)Math.Pow(Math.Pow(ourVal, 2), 0.5);
             }
             
-            static bool labyrinthFiniteVersionGeneratorGame(short lengthInLabyrinthX, short lengthInLabyrinthY, string fillerOfEmptyDungeonSpace, string fillerOfWallDungeonArea, string playerCurrentPositionFiller)
+            static bool labyrinthFiniteVersionGeneratorGame(short lengthInLabyrinthX, short lengthInLabyrinthY, string fillerOfEmptyDungeonSpace, string fillerOfWallDungeonArea, string playerCurrentPositionFiller, short XCoordStart, short YCoordStart, short XCoordEnd, short YCoordEnd)
             {
                 string typeOfLabyrinthGamePlayer = "null";
                 while (typeOfLabyrinthGamePlayer != "P" && typeOfLabyrinthGamePlayer != "AI")
@@ -636,38 +653,122 @@ namespace LearningCSharpPart1
 
                     for (short labyrinthConstructionFillingEachCell = 0; labyrinthConstructionFillingEachCell < lengthInLabyrinthX; labyrinthConstructionFillingEachCell++)
                     {
-                        //============
+
                         labyrinth[labyrinthConstructionInEachRow].Add(new Room(false, false, false, false, false, false));
                     }
                 }
+
+
+                Random randomCoords = new Random();
+                short ourRandomCoordinates = (short)randomCoords.Next(0, lengthInLabyrinthX);
+                if(XCoordStart<0 || XCoordStart > lengthInLabyrinthX - 1)
+                {
+                    XCoordStart = ourRandomCoordinates;
+                }
+                ourRandomCoordinates = (short)randomCoords.Next(0, lengthInLabyrinthY);
+                if (YCoordStart<0 || YCoordStart > lengthInLabyrinthY - 1)
+                {
+                    YCoordStart = ourRandomCoordinates;
+                }
+                //this do while loops is just to make sure the start and beginning coords labyrinth[y][x]/graph(x,y) are not the same
+                do
+                {
+                    ourRandomCoordinates = (short)randomCoords.Next(0, lengthInLabyrinthX);
+                    if (XCoordEnd < 0 || XCoordEnd > lengthInLabyrinthX - 1)
+                    {
+                        XCoordEnd = ourRandomCoordinates;
+                    }
+                    ourRandomCoordinates = (short)randomCoords.Next(0, lengthInLabyrinthY);
+                    if (YCoordEnd < 0 || YCoordEnd > lengthInLabyrinthY - 1)
+                    {
+                        YCoordEnd = ourRandomCoordinates;
+                    }
+                } while (XCoordStart == XCoordEnd && YCoordStart == YCoordStart);
+
+                // the next following lines are to chekc if the startin and endin coordsinates are at the border and if they are then a path will brokwn outta a direction depnding on the situation
+                List<string> possibleOriginDirections = new List<string>();
+                List<string> possibleEndPaths = new List<string>();
+
+                Console.WriteLine("We will start at {" + XCoordStart + "   " + YCoordStart + "}\nAnd we will end at {" + XCoordEnd + "   " + YCoordEnd+"}");
+
+
+
+                if (XCoordStart == 0) { possibleOriginDirections.Add("W"); }
+                if (XCoordStart == lengthInLabyrinthX - 1) { possibleOriginDirections.Add("E"); }
+                if (YCoordStart == 0) { possibleOriginDirections.Add("N"); }
+                if (YCoordStart == lengthInLabyrinthY - 1) { possibleOriginDirections.Add("S"); }
+                if (XCoordEnd == 0) { possibleEndPaths.Add("W"); }
+                if (XCoordEnd == lengthInLabyrinthX - 1) { possibleEndPaths.Add("E"); }
+                if (YCoordEnd == 0) { possibleEndPaths.Add("N"); }
+                if (YCoordEnd == lengthInLabyrinthY - 1) { possibleEndPaths.Add("S"); }
+
+                Random whichDoorSelector = new Random();
+
+                string chosenStartDoor = "X";
+                if (possibleOriginDirections.Count > 0)
+                {
+                    chosenStartDoor = possibleOriginDirections[whichDoorSelector.Next(0, possibleOriginDirections.Count)];
+                }
+
+                string chosenEndDoor = "X";
+                if (possibleEndPaths.Count > 0)
+                {
+                    chosenEndDoor = possibleEndPaths[whichDoorSelector.Next(0, possibleEndPaths.Count)];
+                    labyrinth[YCoordEnd][XCoordEnd].quickSingleDoorOpen(chosenEndDoor);
+                }
+                //===================
+
+                
+
+                //applies DFS on the labyrinth from position Labyrinth[yStart][xStart]     
+                depthFirstSearchConstructionLabyrinthBased(labyrinth, XCoordStart, YCoordStart, chosenStartDoor, false, 0, 0, 0, 0);
+
+                labyrinth[YCoordStart][XCoordStart].playerPresenceCheck = true;
+
+                
+                
+
+                //opens the south gate/sector of the labyrinth[yEnd][xEnd]
                 if (typeOfLabyrinthGamePlayer == "P")
                 {
-
-
-                    //applies DFS on the labyrinth from position Labyrinth[{y}0][{x}0]        
-                    depthFirstSearchConstructionLabyrinthBased(labyrinth, 0, 0,  "N", false, 0 , 0, 0, 0);
-
-                    //opens the south gate/sector of the labyrinth[{y}maxY][{x}maxX]
-                    labyrinth[lengthInLabyrinthY - 1][lengthInLabyrinthX - 1].south = true;
 
                     //movement interferance starts here
                     Console.WriteLine("\n\nGamse Started:\n\n======================\n\n======================\n\n");
 
-                    labyrinth[0][0].playerPresenceCheck = true;
+                    
 
                     byte gameEndedCheck = 0;
-                    while (gameEndedCheck!=10)
+                    while (gameEndedCheck!=10 && gameEndedCheck!=5)
                     {
 
                         generatingMapForLabyrinth(labyrinth, fillerOfEmptyDungeonSpace, fillerOfWallDungeonArea, playerCurrentPositionFiller);
 
 
 
-                        gameEndedCheck = gameControlsForMazeGame(labyrinth, lengthInLabyrinthX, lengthInLabyrinthY, false, 0, 0);
+                        gameEndedCheck = gameControlsForMazeGame(labyrinth, true, XCoordStart, YCoordStart);
                         if (gameEndedCheck == 1) { return true; }
 
+                        short[] playerCoords = coordinatesOfCurPosMarker(labyrinth);
+                        short xPos = playerCoords[1];
+                        short yPos = playerCoords[0];
+
+                        //the following line of code is if the end coordinate of teh whole labyrinth is not on the borders of the labyrinth, so people who reach the internal exit still win cause its still an exit after all
+
+                        Console.WriteLine("your currently at {" + xPos + "  as X coordinate, " + yPos + " as y coordinate}");
+                        if(xPos==XCoordEnd && yPos == YCoordEnd && XCoordEnd<lengthInLabyrinthX-1 && YCoordEnd<lengthInLabyrinthY-1)
+                        {
+                            Console.WriteLine("\n\n\nWell done you have reached the end, u lucky twat\n atleast your not that retarded you cant even solve a fucking maze pfft-");
+                            gameEndedCheck = 10;
+                        }
                     }
+                    if (gameEndedCheck == 10)
+                    {
+                        return true;
+                    }
+                    //the follwoing line wont even get executed if the line above gets executed first
+                    Console.WriteLine("\n\n\nSorry but you are mistake in this universe,\nConsider your life decisions you made so far, YOU fuCkiNg loSEr!!!");
                     return false;
+                    
                 }
 
 
@@ -676,22 +777,17 @@ namespace LearningCSharpPart1
                 if (typeOfLabyrinthGamePlayer == "AI")
                 {
 
-
-                    short endingXCoordBFS = Convert.ToInt16(lengthInLabyrinthX - 1);
-                    short endingYCoordBFS = Convert.ToInt16(lengthInLabyrinthY - 1);
-                    depthFirstSearchConstructionLabyrinthBased(labyrinth, 0, 0, "N", false, 0, 0, 0, 0);
-                    labyrinth[endingYCoordBFS][endingXCoordBFS].south = true;
                     
                     //generatingMapForLabyrinth(labyrinth, fillerOfEmptyDungeonSpace, fillerOfWallDungeonArea, playerCurrentPositionFiller, lengthInLabyrinthX, lengthInLabyrinthY);
-                    findBFSFindShortestPath(labyrinth, 7, 7, 3, 3, fillerOfEmptyDungeonSpace, fillerOfWallDungeonArea, playerCurrentPositionFiller);
-                    generatingMapForLabyrinth(labyrinth, fillerOfEmptyDungeonSpace, fillerOfWallDungeonArea, playerCurrentPositionFiller);
+                    findBFSFindShortestPath(labyrinth, XCoordStart, YCoordStart, XCoordEnd, YCoordEnd, fillerOfEmptyDungeonSpace, fillerOfWallDungeonArea, playerCurrentPositionFiller);
                 }
 
                 //place holder
+                Console.WriteLine("\n\n\nYou sooo dumb that chu had to bloody use the ai to solve thsi for you\nBiggest Bruh...Sister that wasnt very cash money of you shmh~");
                 return false;
             }
             //watch https://www.youtube.com/watch?v=xlVX7dXLS64&t=1s&pbjreload=101 To see why I made this function
-            static List<List<int>> breadthFirstSearchingPathLabyrinthBased(List<List<Room>> ourMaze, short coordinateXOfStart, short coordinateYOfStart)
+            static List<List<int>> breadthFirstSearchingPathLabyrinthBased(List<List<Room>> ourMaze, short coordinateXOfStart, short coordinateYOfStart, short coordinateXForEnd, short coordinateYForEnd)
             {
                 short mazeXSize = (short)ourMaze[0].Count;
                 short mazeYsize = (short)ourMaze.Count;
@@ -753,7 +849,10 @@ namespace LearningCSharpPart1
 
                             }
 
-
+                            if (cycleOfAdjacency[1] == coordinateXForEnd && cycleOfAdjacency[0]==coordinateYForEnd)
+                            {
+                                return rebuildOrginPath;
+                            }
                         }
 
                         
@@ -807,7 +906,7 @@ namespace LearningCSharpPart1
             }
             static void findBFSFindShortestPath(List<List<Room>> ourLabyrinth, short coordinateXOfStart, short coordinateYOfStart, short coordinateXOfEnd, short coordinateYForEnd, string fillerOfEmptyDungeonSpace, string fillerOfWallDungeonArea, string playerCurrentPositionFiller)
             {
-                List<List<int>> rebuildOrginPath = breadthFirstSearchingPathLabyrinthBased(ourLabyrinth, coordinateXOfStart, coordinateYOfStart);
+                List<List<int>> rebuildOrginPath = breadthFirstSearchingPathLabyrinthBased(ourLabyrinth, coordinateXOfStart, coordinateYOfStart, coordinateXOfEnd, coordinateYForEnd);
 
                 List<List<short>> pathBackTrackedAndFlipped = reBuildBFSPathLabyrinthBased(ourLabyrinth, coordinateXOfStart, coordinateYOfStart,Convert.ToInt16( coordinateXOfEnd ), Convert.ToInt16(coordinateYForEnd ), rebuildOrginPath);
 
